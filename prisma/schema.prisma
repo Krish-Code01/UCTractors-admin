@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model Store {
+  id              String    @id @default(uuid())
+  name            String
+  userId          String
+  banners         Banner[] @relation("StoreToBanner")
+  companies       Company[] @relation("StoreToCompany")
+  products        Product[]  @relation("StoreToProduct")
+  orders          Order[]     @relation("StoreToOrder")
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+model Banner {
+  id          String @id @default(uuid())
+  storeId     String
+  store       Store @relation("StoreToBanner", fields: [storeId], references: [id])
+  label       String
+  imageUrl    String
+  companies  Company[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([storeId])
+}
+
+model Company {
+  id          String      @id @default(uuid())
+  storeId     String      // Foreign Key to Store
+  store       Store       @relation("StoreToCompany", fields: [storeId], references: [id])
+  bannerId String      // Foreign Key to Banner
+  banner   Banner   @relation(fields: [bannerId], references: [id])
+  name        String
+  products    Product[]   @relation("CompanyToProduct")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([storeId])
+  @@index([bannerId])
+}
+
+model Product {
+  id          String    @id @default(uuid())
+  storeId     String  
+  store       Store     @relation("StoreToProduct", fields: [storeId], references: [id])
+  companyId  String    
+  company    Company  @relation("CompanyToProduct", fields: [companyId], references: [id])
+  name        String
+  model       Decimal
+  tyre        String
+  condition   String
+  price       Decimal
+  isFeatured  Boolean   @default(false)
+  isArchived  Boolean   @default(false)
+  images      Image[]  
+  orderItems  OrderItem[]  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([storeId])
+  @@index([companyId])
+}
+
+model Order {
+  id        String    @id @default(uuid())
+  storeId     String    
+  store       Store     @relation("StoreToOrder", fields: [storeId], references: [id])
+  orderItems OrderItem[] 
+  isPaid     Boolean   @default(false)
+  phone      String    @default("")
+  address    String    @default("")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([storeId])
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String  
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String  
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+
+model Image {
+  id          String   @id @default(uuid())
+  productId   String   
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url         String   
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([productId])
+}
