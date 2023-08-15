@@ -3,13 +3,14 @@
 import { ColumnDef } from "@tanstack/react-table";
 
 import { CellAction } from "./cell-action";
+import { Decimal } from "@prisma/client/runtime";
 
 export type ProductColumn = {
   id: string;
   name: string;
   tyre: string;
   condition: string;
-  model: string;
+  model: Decimal;
   price: string;
   company: string;
   createdAt: string;
